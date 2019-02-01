@@ -1,18 +1,21 @@
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """Classes for S3 Buckets."""
 
 from pathlib import Path
 import mimetypes
+
 from botocore.exceptions import ClientError
 
 
 class BucketManager:
     """Manage an S3 Bucket."""
 
-    def __init__(self, SESSION):
+    def __init__(self, session):
         """Create a BucketManager object."""
-        self.s3 = SESSION.resource('s3')
+        self.session = session
+        self.s3 = session.resource('s3')
 
     def all_buckets(self):
         """Get an iterator for all buckets."""
@@ -23,17 +26,22 @@ class BucketManager:
         return self.s3.Bucket(bucket_name).objects.all()
 
     def init_bucket(self, bucket_name):
-        """Create new bucket, or return exisiting one by name."""
-        s3_bucket = None
-        try:
-            s3_bucket = self.s3.create_bucket(Bucket=bucket_name)
-        except ClientError as error:
-            if error.response['Error']['Code'] == 'BucketAlreadyOwnedByYou':
-                s3_bucket = self.s3.Bucket(bucket_name)
-            else:
-                raise error
+            """Create new bucket, or return existing one by name."""
+            s3_bucket = None
+            try:
+                s3_bucket = self.s3.create_bucket(
+                    Bucket=bucket_name,
+                    CreateBucketConfiguration={
+                        'LocationConstraint': self.session.region_name
+                    }
+                )
+            except ClientError as error:
+                if error.response['Error']['Code'] == 'BucketAlreadyOwnedByYou':
+                    s3_bucket = self.s3.Bucket(bucket_name)
+                else:
+                    raise error
 
-        return s3_bucket
+            return s3_bucket
 
     def set_policy(self, bucket):
         """Set bucket policy to be readable by everyone."""
