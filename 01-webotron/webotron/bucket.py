@@ -21,12 +21,11 @@ class BucketManager:
     def __init__(self, session):
         """Create a BucketManager object."""
         self.session = session
-        self.s3 = session.resource('s3')
+        self.s3 = self.session.resource('s3')
         self.transfer_config = boto3.s3.transfer.TransferConfig(
             multipart_chunksize=self.CHUNK_SIZE,
             multipart_threshold=self.CHUNK_SIZE
         )
-
         self.manifest = {}
 
     def get_bucket(self, bucket_name):
@@ -34,7 +33,6 @@ class BucketManager:
         return self.s3.Bucket(bucket_name)
 
     def get_region_name(self, bucket):
-
         """Get the bucket's region name."""
         client = self.s3.meta.client
         bucket_location = client.get_bucket_location(Bucket=bucket.name)
@@ -45,7 +43,8 @@ class BucketManager:
         """Get the website URL for this bucket."""
         return "http://{}.{}".format(
             bucket.name,
-            util.get_endpoint(self.get_region_name(bucket)).host)
+            util.get_endpoint(self.get_region_name(bucket)).host
+            )
 
     def all_buckets(self):
         """Get an iterator for all buckets."""
@@ -107,7 +106,6 @@ class BucketManager:
 
     def load_manifest(self, bucket):
         """Load manifest for caching purposes."""
-        print("loading mainfest")
         paginator = self.s3.meta.client.get_paginator('list_objects_v2')
         for page in paginator.paginate(Bucket=bucket.name):
             for obj in page.get('Contents', []):
@@ -149,7 +147,6 @@ class BucketManager:
 
         etag = self.gen_etag(path)
         if self.manifest.get(key, '') == etag:
-            print("Skipping {}, etags match".format(key))
             return
 
         return bucket.upload_file(
