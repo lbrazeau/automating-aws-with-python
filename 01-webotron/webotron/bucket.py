@@ -94,7 +94,7 @@ class BucketManager:
         pol.put(Policy=policy)
 
     def configure_website(self, bucket):
-        """Configure bucket for website."""
+        """Configure s3 website hosting for bucket."""
         bucket.Website().put(WebsiteConfiguration={
             'ErrorDocument': {
                 'Key': 'error.html'
