@@ -25,3 +25,5 @@ using CloudWatch Events
 ### Features
 
 Notifon currently has the following features:
+
+- Send notifications to Slack when cloudwatch events happen
